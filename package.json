@@ -1,0 +1,39 @@
+{
+  "name": "sdk",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/team-alpascal/sdk.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/team-alpascal/sdk/issues"
+  },
+  "homepage": "https://github.com/team-alpascal/sdk#readme",
+  "description": "",
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@openfeature/js-sdk": "^1.6.1",
+    "@openfeature/open-telemetry-hooks": "^0.4.0",
+    "@openfeature/server-sdk": "^1.18.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.62.0",
+    "@opentelemetry/context-async-hooks": "^2.0.1",
+    "@opentelemetry/sdk-node": "^0.203.0",
+    "@opentelemetry/sdk-trace-base": "^2.0.1",
+    "axios": "^1.10.0",
+    "express": "^5.1.0"
+  }
+}
