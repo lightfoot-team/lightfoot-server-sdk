@@ -36,8 +36,7 @@ export class FlagEnrichmentHook implements Hook {
     //const result = await axios.post('http://localhost:3000/api/flags', spanData, axiosConfig)
   }
 
-  // unsure why hookContext is passed in here
-  error(hookContext, err: Error) {
+  error(hookContext: HookContext, err: Error) {
     console.error('Error during flag evaluation:', err);
   }
 }
