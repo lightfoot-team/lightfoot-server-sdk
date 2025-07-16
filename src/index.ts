@@ -4,7 +4,6 @@ import { OpenFeature } from "@openfeature/server-sdk";
 import { MetricsHook, TracingHook } from "@openfeature/open-telemetry-hooks";
 // import { context, trace } from '@opentelemetry/api';
 
-
 import { sdk, telemetryMiddleware } from './telemetry';
 
 // const TEST_FLAG_CONFIG = {
