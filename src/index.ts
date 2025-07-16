@@ -19,11 +19,11 @@ import { sdk, telemetryMiddleware } from './telemetry';
 //   }
 // };
 
-// setup provider
+// set up provider
 const featureFlagProvider = new MyFeatureProvider();
 OpenFeature.setProvider(featureFlagProvider);
 
-// setup hooks
+// set up hooks
 OpenFeature.addHooks(new FlagEnrichmentHook());
 OpenFeature.addHooks(new MetricsHook());
 OpenFeature.addHooks(new TracingHook());
