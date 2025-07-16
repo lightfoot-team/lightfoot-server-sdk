@@ -1,6 +1,7 @@
 # How to install
 In the terminal, enter `npm install @no-name/sdk`
 
+
 # How to initialize
 At the top level in your file
 `const { featureFlagsClient, testTelemetryMiddleware, init } = require('@no-name/sdk');`
