@@ -3,6 +3,7 @@ import { MyFeatureProvider } from "./provider";
 import { OpenFeature } from "@openfeature/server-sdk";
 import { MetricsHook, TracingHook } from "@openfeature/open-telemetry-hooks";
 // import { context, trace } from '@opentelemetry/api';
+
 import { sdk, telemetryMiddleware } from './telemetry';
 
 // const TEST_FLAG_CONFIG = {
@@ -19,11 +20,11 @@ import { sdk, telemetryMiddleware } from './telemetry';
 //   }
 // };
 
-// setup provider
+// set up provider
 const featureFlagProvider = new MyFeatureProvider();
 OpenFeature.setProvider(featureFlagProvider);
 
-// setup hooks
+// set up hooks
 OpenFeature.addHooks(new FlagEnrichmentHook());
 OpenFeature.addHooks(new MetricsHook());
 OpenFeature.addHooks(new TracingHook());
