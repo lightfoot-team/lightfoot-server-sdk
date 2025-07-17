@@ -2,10 +2,11 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 // import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { metrics, context, trace } from '@opentelemetry/api';
-import { MeterProvider, ConsoleMetricExporter, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+import { ConsoleMetricExporter, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks';
 import { Request, Response, NextFunction } from 'express';
 import {OTLPTraceExporter} from '@opentelemetry/exporter-trace-otlp-proto'
+import {OTLPMetricExporter} from '@opentelemetry/exporter-metrics-otlp-proto'
 import {
   defaultResource,
   resourceFromAttributes,
@@ -22,7 +23,7 @@ import {
 // );
 
 const metricReader = new PeriodicExportingMetricReader({
-  exporter: new ConsoleMetricExporter(),
+  exporter: new OTLPMetricExporter(),
   exportIntervalMillis: 5000,
 });
 const myMeter = metrics.getMeter(
