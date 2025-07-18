@@ -9,10 +9,17 @@ processors:
   batch:
 
 exporters:
-  otlp/grafana:
-    endpoint: grafana-otel:4317
+  # otlp/grafana:
+  #   endpoint: grafana-otel:4317
+  #   tls:
+  #     insecure: true
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+  otlp/tempo:
+    endpoint: "tempo:4317"
     tls:
       insecure: true
+
   debug:
     verbosity: detailed
 
@@ -21,12 +28,12 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/grafana, debug]
+      exporters: [otlp/tempo, debug]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/grafana, debug]
-    logs:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp/grafana, debug]
+      exporters: [prometheus, debug]
+    # logs:
+    #   receivers: [otlp]
+    #   processors: [batch]
+    #   exporters: [otlp/grafana, debug]
