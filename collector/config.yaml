@@ -9,8 +9,11 @@ processors:
   batch:
 
 exporters:
-  # otlp:
-  #   endpoint: otelcol:4317
+  otlp/grafana:
+    # endpoint: otelcol:4317
+    endpoint: http://172.17.0.3:4317
+    tls:
+      insecure: true
   debug:
     verbosity: detailed
 
@@ -19,12 +22,15 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      # exporters: [debug]
+      exporters: [otlp/grafana, debug]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      # exporters: [debug]
+      exporters: [otlp/grafana, debug]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      exporters: [otlp/grafana, debug]
+      # exporters: [debug]
