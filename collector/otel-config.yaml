@@ -5,6 +5,18 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
+
+  filelog:
+      include:
+        - /logs/*.log
+      start_at: beginning
+      operators:
+        - type: json_parser
+          parse_from: body
+        - type: move
+          from: body
+          to: attributes
+
 processors:
   batch:
 
@@ -19,6 +31,10 @@ exporters:
     endpoint: "tempo:4317"
     tls:
       insecure: true
+  loki:
+    endpoint: "http://loki:3100/loki/api/v1/push"
+    labels:
+      job: "toy-app"
 
   debug:
     verbosity: detailed
@@ -33,7 +49,7 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [prometheus, debug]
-    # logs:
-    #   receivers: [otlp]
-    #   processors: [batch]
-    #   exporters: [otlp/grafana, debug]
+    logs:
+      receivers: [filelog]
+      processors: [batch]
+      exporters: [loki, debug]
