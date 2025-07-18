@@ -10,7 +10,7 @@ processors:
 
 exporters:
   otlp/grafana:
-    endpoint: http://172.17.0.3:4317
+    endpoint: grafana-otel:4317
     tls:
       insecure: true
   debug:
