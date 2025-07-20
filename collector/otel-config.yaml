@@ -55,30 +55,10 @@ receivers:
         from: attributes.message
         to: body  # This becomes the main log message
 
-  # filelog:
-  #     include:
-  #       - /logs/*.log
-  #     start_at: beginning
-  #     operators:
-  #       - type: json_parser
-  #         parse_from: body
-  #       - type: trace_parser
-  #         trace_id:
-  #           parse_from: attributes.trace_id
-  #         span_id:
-  #         parse_from: attributes.span_id
-        # - type: move
-        #   from: body
-        #   to: attributes
-
 processors:
   batch:
 
 exporters:
-  # otlp/grafana:
-  #   endpoint: grafana-otel:4317
-  #   tls:
-  #     insecure: true
   prometheus:
     endpoint: "0.0.0.0:8889"
   otlp/tempo:
@@ -86,20 +66,16 @@ exporters:
     tls:
       insecure: true
   loki:
-    endpoint: "http://loki:3100/loki/api/v1/push"
-    limits_config:
-      volume_enabled: true
-    default_labels_enabled:
-      exporter: false
-      job: false
-    labels:
-      attributes:
-        job: "toy-app"
-        source: "filelog"
-  # loki:
-  #   endpoint: "http://loki:3100/loki/api/v1/push"
-  #   labels:
-  #     job: "toy-app"
+    endpoint: "http://loki:3100"
+    # limits_config:
+    #   volume_enabled: true
+    # default_labels_enabled:
+    #   exporter: false
+    #   job: false
+    # labels:
+    #   attributes:
+    #     job: "toy-app"
+    #     source: "filelog"
 
   debug:
     verbosity: detailed
