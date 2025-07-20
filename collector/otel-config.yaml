@@ -117,4 +117,4 @@ service:
     logs:
       receivers: [filelog]
       processors: [batch]
-      exporters: [loki]
+      exporters: [loki, debug]
