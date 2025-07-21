@@ -67,15 +67,6 @@ exporters:
       insecure: true
   loki:
     endpoint: "http://loki:3100/loki/api/v1/push"
-    # limits_config:
-    #   volume_enabled: true
-    # default_labels_enabled:
-    #   exporter: false
-    #   job: false
-    # labels:
-    #   attributes:
-    #     job: "toy-app"
-    #     source: "filelog"
 
   debug:
     verbosity: detailed
