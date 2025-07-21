@@ -66,7 +66,7 @@ exporters:
     tls:
       insecure: true
   loki:
-    endpoint: "http://loki:3100"
+    endpoint: "http://loki:3100/loki/api/v1/push"
     # limits_config:
     #   volume_enabled: true
     # default_labels_enabled:
