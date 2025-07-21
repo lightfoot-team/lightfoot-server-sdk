@@ -1,5 +1,4 @@
 import { NodeSDK } from '@opentelemetry/sdk-node';
-// import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { metrics, context, trace } from '@opentelemetry/api';
 import { ConsoleMetricExporter, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
@@ -11,36 +10,32 @@ import {
   defaultResource,
   resourceFromAttributes,
 } from '@opentelemetry/resources';
-// import {
-//   ATTR_SERVICE_NAME,
-//   ATTR_SERVICE_VERSION,
-// } from '@opentelemetry/semantic-conventions';
-// const resource = defaultResource().merge(
-//   resourceFromAttributes({
-//     [ATTR_SERVICE_NAME]: 'dice-server',
-//     [ATTR_SERVICE_VERSION]: '0.1.0',
-//   }),
-// );
 
+//TODO: find out where/how metric export to collector is configured (automatic?)
 const metricReader = new PeriodicExportingMetricReader({
   exporter: new OTLPMetricExporter(),
   exportIntervalMillis: 5000,
 });
+
+//TODO: is this necessary? Look up how metric collection + exporting works in Otel docs
 const myMeter = metrics.getMeter(
   'instrumentation-scope-name',
   'instrumentation-scope-version',
 );
 export const sdk = new NodeSDK({
   contextManager: new AsyncHooksContextManager().enable(),
-  // traceExporter: new ConsoleSpanExporter(),
   traceExporter: new OTLPTraceExporter({
-    url: "http://localhost:4318/v1/traces"
+    url: "http://localhost:4318/v1/traces" //TODO: refactor hard code
   }),
   metricReader: metricReader,
   
   instrumentations: [getNodeAutoInstrumentations()],
 });
 
+
+//TODO: refactor or eliminate middleware 
+//      pivot to handling errors/crashes? 
+//      pivot to handling cache hits?
 // eslint-disable-next-line max-len
 export const telemetryMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const tracer = trace.getTracer('my-app');

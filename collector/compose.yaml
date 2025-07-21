@@ -16,7 +16,7 @@ services:
     volumes:
       - ./otel-config.yaml:/etc/otelcol-contrib/config.yaml
       # added this to mount the toy app's logs folder so the Collector can see them
-      - ../../toy-app/logs:/logs
+      - /Users/alex/toy-app-parks/toy-app/logs:/logs
     ports:
       # - 1888:1888 # pprof extension
       - 8888:8888 # Prometheus metrics exposed by the Collector

@@ -32,6 +32,8 @@ const getFlagValue = async (flagKey: string, defaultValue: DefaultValue, context
   }
   return value;
 }
+
+//TODO: look up naming conventions for provider implementations
 export class MyFeatureProvider implements Provider {
   readonly metadata = {
     name: 'Best Feature Provider',
