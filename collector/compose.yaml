@@ -16,7 +16,7 @@ services:
     volumes:
       - ./otel-config.yaml:/etc/otelcol-contrib/config.yaml
       # added this to mount the toy app's logs folder so the Collector can see them
-      - /Users/alex/toy-app-parks/toy-app/logs:/logs
+      - ../../toy-app/logs:/logs
     ports:
       # - 1888:1888 # pprof extension
       - 8888:8888 # Prometheus metrics exposed by the Collector
@@ -69,6 +69,7 @@ services:
     volumes:
       - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
     environment:
+      - GF_SECURITY_ALLOW_EMBEDDING=true # added so we can embed iframes
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true

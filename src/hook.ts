@@ -13,7 +13,6 @@ const axiosConfig = {
   }
 };
 
-//TODO: Determine whether we should refactor or eliminate
 export class FlagEnrichmentHook implements Hook {
   // eslint-disable-next-line max-len
   async after(hookContext: HookContext, evaluationDetails: EvaluationDetails<any>) {

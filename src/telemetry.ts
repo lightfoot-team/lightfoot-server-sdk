@@ -18,10 +18,10 @@ const metricReader = new PeriodicExportingMetricReader({
 });
 
 //TODO: is this necessary? Look up how metric collection + exporting works in Otel docs
-const myMeter = metrics.getMeter(
-  'instrumentation-scope-name',
-  'instrumentation-scope-version',
-);
+// const myMeter = metrics.getMeter(
+//   'instrumentation-scope-name',
+//   'instrumentation-scope-version',
+// );
 export const sdk = new NodeSDK({
   contextManager: new AsyncHooksContextManager().enable(),
   traceExporter: new OTLPTraceExporter({
