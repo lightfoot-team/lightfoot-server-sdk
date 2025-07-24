@@ -24,7 +24,7 @@ const getFlagValue = async (flagKey: string, defaultValue: DefaultValue, context
     if (response === null) {
       value = defaultValue;
     } else {
-      value = response.data.value;
+      value = response.data;
     }
   } catch (err) {
     console.error(err)
@@ -52,9 +52,11 @@ export class MyFeatureProvider implements Provider {
   ): Promise<ResolutionDetails<boolean>> {
 
     const value = await getFlagValue(flagKey, defaultValue, context);
+
     const resolutionDetails: ResolutionDetails<boolean> = {
       value
     };
+
     return resolutionDetails
   }
 

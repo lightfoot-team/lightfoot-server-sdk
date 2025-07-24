@@ -31,7 +31,7 @@ export class FlagEnrichmentHook implements Hook {
       events: span.events,
       evaluationDetails
     };
-    await axios.post('http://localhost:3000/api/flags/telemetry', {telemetry: spanData}, axiosConfig);
+    // await axios.post('http://localhost:3000/api/flags/telemetry', {telemetry: spanData}, axiosConfig);
     //const result = await axios.post('http://localhost:3000/api/flags', spanData, axiosConfig)
   }
 

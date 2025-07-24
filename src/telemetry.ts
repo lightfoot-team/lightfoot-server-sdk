@@ -13,15 +13,12 @@ import {
 
 //TODO: find out where/how metric export to collector is configured (automatic?)
 const metricReader = new PeriodicExportingMetricReader({
-  exporter: new OTLPMetricExporter(),
+  exporter: new OTLPMetricExporter({url: 'http://localhost:4318/v1/metrics'}),
   exportIntervalMillis: 5000,
 });
 
-//TODO: is this necessary? Look up how metric collection + exporting works in Otel docs
-// const myMeter = metrics.getMeter(
-//   'instrumentation-scope-name',
-//   'instrumentation-scope-version',
-// );
+
+
 export const sdk = new NodeSDK({
   contextManager: new AsyncHooksContextManager().enable(),
   traceExporter: new OTLPTraceExporter({
@@ -31,7 +28,7 @@ export const sdk = new NodeSDK({
   
   instrumentations: [getNodeAutoInstrumentations()],
 });
-
+//TODO: is this necessary? Look up how metric collection + exporting works in Otel docs
 
 //TODO: refactor or eliminate middleware 
 //      pivot to handling errors/crashes? 
