@@ -19,9 +19,9 @@ export const testTelemetryMiddleware = telemetryMiddleware;
 
 // expose client
 export const featureFlagsClient = OpenFeature.getClient();
-featureFlagsClient.addHooks(new MetricsHook());
-featureFlagsClient.addHooks(new FlagEnrichmentHook());
-featureFlagsClient.addHooks(new TracingHook());
+// featureFlagsClient.addHooks(new MetricsHook());
+// featureFlagsClient.addHooks(new FlagEnrichmentHook());
+// featureFlagsClient.addHooks(new TracingHook());
 // expose async func to start the SDK
 export const init = () => {
   sdk.start();
