@@ -13,24 +13,29 @@ const axiosConfig = {
     'Content-Type': 'application/json',
   }
 };
-const getFlagValue = async (flagKey: string, defaultValue: DefaultValue, context: EvaluationContext)=> {
+const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, context: EvaluationContext)=> {
   const flagDetails = {
     context,
     flagKey
   }
-  let value;
   try {
     const response = await axios.post('http://localhost:3001/api/evaluate', flagDetails, axiosConfig);
     if (response === null) {
-      value = defaultValue;
+      return {
+        value: defaultValue,
+        reason: 'STATIC'
+      }
     } else {
-      value = response.data;
+      console.log('response:', response.data)
+      return response.data;
     }
   } catch (err) {
     console.error(err)
-    value = defaultValue
+      return {
+        value: defaultValue,
+        reason: 'ERROR'
+      }
   }
-  return value;
 }
 
 //TODO: look up naming conventions for provider implementations
@@ -51,13 +56,9 @@ export class MyFeatureProvider implements Provider {
     context: EvaluationContext,
   ): Promise<ResolutionDetails<boolean>> {
 
-    const value = await getFlagValue(flagKey, defaultValue, context);
-
-    const resolutionDetails: ResolutionDetails<boolean> = {
-      value
-    };
-
-    return resolutionDetails
+    const resolutionDetails = await getFlagEvaluation(flagKey, defaultValue, context);
+    console.log('details', resolutionDetails)
+    return resolutionDetails;
   }
 
   async resolveStringEvaluation(
@@ -65,11 +66,8 @@ export class MyFeatureProvider implements Provider {
     defaultValue: string,
     context: EvaluationContext,
   ): Promise<ResolutionDetails<string>> {
-    const value = await getFlagValue(flagKey, defaultValue, context);
-    const resolutionDetails: ResolutionDetails<string> = {
-      value
-    };
-    return resolutionDetails
+    const resolutionDetails = await getFlagEvaluation(flagKey, defaultValue, context);
+    return resolutionDetails;
   }
 
   async resolveNumberEvaluation(
@@ -77,11 +75,8 @@ export class MyFeatureProvider implements Provider {
     defaultValue: number,
     context: EvaluationContext,
   ): Promise<ResolutionDetails<number>> {
-    const value = await getFlagValue(flagKey, defaultValue, context);
-    const resolutionDetails: ResolutionDetails<number> = {
-      value
-    };
-    return resolutionDetails
+    const resolutionDetails = await getFlagEvaluation(flagKey, defaultValue, context);
+    return resolutionDetails;
   }
 
   async resolveObjectEvaluation<T extends JsonValue>(
@@ -89,10 +84,7 @@ export class MyFeatureProvider implements Provider {
     defaultValue: T,
     context: EvaluationContext,
   ): Promise<ResolutionDetails<T>> {
-    const value = await getFlagValue(flagKey, defaultValue, context);
-    const resolutionDetails: ResolutionDetails<T> = {
-      value
-    };
+    const resolutionDetails = await getFlagEvaluation(flagKey, defaultValue, context);
     return resolutionDetails;
   }
 }
