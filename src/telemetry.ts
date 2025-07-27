@@ -18,7 +18,7 @@ const metricReader = new PeriodicExportingMetricReader({
   exportIntervalMillis: 5000,
 });
 
-const samplePercentage = .1;
+const samplePercentage = .5;
 
 export const sdk = new NodeSDK({
   contextManager: new AsyncHooksContextManager().enable(),
