@@ -10,6 +10,7 @@ import {
   defaultResource,
   resourceFromAttributes,
 } from '@opentelemetry/resources';
+import { TraceIdRatioBasedSampler } from '@opentelemetry/sdk-trace-base';
 
 //TODO: find out where/how metric export to collector is configured (automatic?)
 const metricReader = new PeriodicExportingMetricReader({
@@ -17,7 +18,7 @@ const metricReader = new PeriodicExportingMetricReader({
   exportIntervalMillis: 5000,
 });
 
-
+const samplePercentage = .1;
 
 export const sdk = new NodeSDK({
   contextManager: new AsyncHooksContextManager().enable(),
@@ -25,6 +26,7 @@ export const sdk = new NodeSDK({
     url: "http://localhost:4318/v1/traces" //TODO: refactor hard code
   }),
   metricReader: metricReader,
+  sampler: new TraceIdRatioBasedSampler(samplePercentage),
   
   instrumentations: [getNodeAutoInstrumentations()],
 });
