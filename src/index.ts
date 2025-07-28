@@ -10,7 +10,7 @@ import { sdk, telemetryMiddleware } from './telemetry';
 const featureFlagProvider = new MyFeatureProvider();
 OpenFeature.setProvider(featureFlagProvider);
 
-export const testTelemetryMiddleware = telemetryMiddleware;
+// export const testTelemetryMiddleware = telemetryMiddleware;
 
 // expose client
 export const featureFlagsClient = OpenFeature.getClient();
