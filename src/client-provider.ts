@@ -17,33 +17,46 @@ const axiosConfig = {
     'Content-Type': 'application/json',
   }
 };
-const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, context: EvaluationContext) => {
-  const flagDetails = {
-    context,
-    flagKey
-  }
-  try {
-    const response = await axios.post('http://localhost:3001/api/evaluate', flagDetails, axiosConfig);
-    if (response === null) {
-      return {
+
+
+const cache = new Map();
+
+/** 
+ * Retrieves the evaluation results for the current context to enable 
+ * static evaluation of feature flags 
+ * @param evaluationContext the context for static flag evaluation
+ */
+const getFlagEvaluationConfig = async (evaluationContext: EvaluationContext) => {
+  //TODO: For now, fetch evaluation for all flags for the given context 
+  const response = await axios.post('http://localhost:3001/api/evaluate/config', {context: evaluationContext}, axiosConfig);
+  // Set the flag evaluation result for each flag
+  response.data.forEach(result => {
+    cache.set(result.flagKey, result.evaluationResult);
+  });
+  
+}
+// curl -X POST http://localhost:3001/api/evaluate/config \
+//   -H "Content-Type: application/json" \
+//   -d '{
+//     "context": {
+//       "name": "admin",
+//       "username": "admin"
+//     }
+//   }'
+const getFlagEvaluation = (flagKey: string, defaultValue: DefaultValue, context: EvaluationContext) => {
+    if (!cache.has(flagKey)) {
+      return { // Default if flag is not in cache? 
         value: defaultValue,
         reason: 'STATIC'
       }
     } else {
-      console.log('response:', response.data)
-      return response.data;
+      return cache.get(flagKey)
     }
-  } catch (err) {
-    console.error(err)
-    return {
-      value: defaultValue,
-      reason: 'ERROR'
-    }
-  }
+  
 }
 
 //TODO: look up naming conventions for provider implementations
-export class MyFeatureProvider implements Provider {
+export class ClientFeatureProvider implements Provider {
 
   // Adds runtime validation that the provider is used with the expected SDK
   public readonly runsOn = 'client';
@@ -51,7 +64,7 @@ export class MyFeatureProvider implements Provider {
   readonly metadata = {
     name: 'Frontend Provider',
   } as const;
-  
+
   // Optional provider managed hooks
   hooks?: Hook[];
 
@@ -97,18 +110,20 @@ export class MyFeatureProvider implements Provider {
   }
 
 
-  onContextChange?(oldContext: EvaluationContext, newContext: EvaluationContext): Promise<void> {
+  async onContextChange?(oldContext: EvaluationContext, newContext: EvaluationContext): Promise<void> {
     // reconcile the provider's cached flags, if applicable
+    await getFlagEvaluationConfig
   }
 
     // implement with "new OpenFeatureEventEmitter()", and use "emit()" to emit events
   events?: ProviderEventEmitter<AnyProviderEvent> | undefined;
 
-  initialize?(context?: EvaluationContext | undefined){
+  async initialize?(context?: EvaluationContext | undefined){
     // code to initialize your provider
+    await getFlagEvaluationConfig
   }
-  onClose?(){
-    // code to shut down your provider
-  }
+  // onClose?(){
+  //   // code to shut down your provider
+  // }
 
 }
