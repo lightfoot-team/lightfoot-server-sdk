@@ -30,8 +30,11 @@ export const sdk = new NodeSDK({
   
   instrumentations: [getNodeAutoInstrumentations()],
 });
-//TODO: is this necessary? Look up how metric collection + exporting works in Otel docs
 
+// Note: We aren't using telemetryMiddleware anywhere anymore. 
+//  It was removed from toy app and from elsewhere in SDK. 
+//  But if you comment it out, line 54 raises some errors.
+//    -SV
 //TODO: refactor or eliminate middleware 
 //      pivot to handling errors/crashes? 
 //      pivot to handling cache hits?
