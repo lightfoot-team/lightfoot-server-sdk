@@ -6,6 +6,7 @@ import {
   OpenFeatureEventEmitter,
 } from '@openfeature/server-sdk';
 import axios from 'axios';
+import config from './config/config';
 
 type DefaultValue = string | boolean | JsonValue | number
 const axiosConfig = {
@@ -19,7 +20,7 @@ const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, co
     flagKey
   }
   try {
-    const response = await axios.post('http://localhost:3001/api/evaluate', flagDetails, axiosConfig);
+    const response = await axios.post(`${config.apiBaseUrl}/api/evaluate`, flagDetails, axiosConfig);
     if (response === null) {
       return {
         value: defaultValue,
