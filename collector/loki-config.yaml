@@ -27,6 +27,10 @@ schema_config:
 storage_config:
   filesystem:
     directory: /tmp/loki/chunks
+  # aws:                                       # Configure this to deploy loki on AWS. 
+  #   region: <your-aws-region>                # e.g., eu-west-2
+  #   bucketnames: <your-s3-bucket-name>       # e.g., loki-aws-dev-chunks
+  #   s3forcepathstyle: false
 
 limits_config:
   volume_enabled: true
