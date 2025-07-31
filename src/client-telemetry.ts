@@ -41,7 +41,7 @@ const FrontendTracer = async () => {
     instrumentations: [
       getWebAutoInstrumentations({
         '@opentelemetry/instrumentation-fetch': {
-          enabled: false, //example of disabling, delete this
+          // enabled: false, //example of disabling, delete this
           propagateTraceHeaderCorsUrls: [
             // Array of Regex to match the backend urls where API calls are going
           ]

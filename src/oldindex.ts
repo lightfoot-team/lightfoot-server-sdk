@@ -5,8 +5,8 @@
 // // import { context, trace } from '@opentelemetry/api';
 // import { metrics, context, trace } from '@opentelemetry/api';
 // import { sdk, telemetryMiddleware } from './telemetry';
-import { LightFootClientSDK, clientFeatureFlagsClient } from "./clientsdk";
-// set up provider
+// import { LightFootClientSDK } from "./clientsdk";
+// // set up provider
 // const featureFlagProvider = new MyFeatureProvider();
 // OpenFeature.setProvider(featureFlagProvider);
 
@@ -29,5 +29,4 @@ import { LightFootClientSDK, clientFeatureFlagsClient } from "./clientsdk";
 //   featureFlagsClient.addHooks(new TracingHook());
 //   }
 // };
-export const FeatureFlagsClient = clientFeatureFlagsClient;
-export const ClientSDK = LightFootClientSDK;
+// export const ClientSDK = LightFootClientSDK;

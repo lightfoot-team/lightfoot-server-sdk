@@ -1,12 +1,14 @@
+//import { OpenFeatureEventEmitter } from '@openfeature/js-sdk';
 import {
   AnyProviderEvent,
+  ClientProviderEvents,
   EvaluationContext,
   Hook,
   JsonValue,
   Logger,
   Provider,
   ProviderEventEmitter,
-  ResolutionDetails
+  ResolutionDetails,
 } from '@openfeature/web-sdk';
 
 import axios from 'axios';
@@ -30,7 +32,7 @@ const getFlagEvaluationConfig = async (evaluationContext: EvaluationContext) => 
   //TODO: For now, fetch evaluation for all flags for the given context 
   const response = await axios.post('http://localhost:3001/api/evaluate/config', {context: evaluationContext}, axiosConfig);
   // Set the flag evaluation result for each flag
-  response.data.forEach(result => {
+  response.data.forEach((result: Record<string, any>) => {
     cache.set(result.flagKey, result.evaluationResult);
   });
   
@@ -66,7 +68,7 @@ export class ClientFeatureProvider implements Provider {
   } as const;
 
   // Optional provider managed hooks
-  hooks?: Hook[];
+  hooks: Hook[] = [];
 
   resolveBooleanEvaluation(
     flagKey: string,
@@ -115,10 +117,14 @@ export class ClientFeatureProvider implements Provider {
     await getFlagEvaluationConfig
   }
 
+  
     // implement with "new OpenFeatureEventEmitter()", and use "emit()" to emit events
-  events?: ProviderEventEmitter<AnyProviderEvent> | undefined;
+//events: ProviderEventEmitter<AnyProviderEvent> = new OpenFeatureEventEmitter() as unknown as ProviderEventEmitter<AnyProviderEvent>;
 
-  async initialize?(context?: EvaluationContext | undefined){
+  // events = ProviderEventEmitter<AnyProviderEvent> = new OpenFeatureEventEmitter();
+
+
+  async initialize(context?: EvaluationContext | undefined){
     // code to initialize your provider
     await getFlagEvaluationConfig
   }
