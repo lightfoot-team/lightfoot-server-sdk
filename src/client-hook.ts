@@ -1,5 +1,5 @@
 import type {Hook, HookContext, EvaluationDetails, FlagValue, Logger} from '@openfeature/server-sdk';
-import { trace, context, Span } from '@opentelemetry/api';
+import { trace, context, Span, Context } from '@opentelemetry/api';
 import { FEATURE_FLAG, KEY_ATTR, PROVIDER_NAME_ATTR, VARIANT_ATTR } from './client-conventions';
 import type { OpenTelemetryHookOptions } from './client-otel-hook';
 import { OpenTelemetryHook } from './client-otel-hook';
@@ -17,40 +17,40 @@ export class TracingHook extends OpenTelemetryHook implements Hook {
     super(options, logger);
   }
 
-  spanMap = new WeakMap<HookContext<any>, Span>();
+ 
+  contextMap = new WeakMap<HookContext<any>, Context>();
 
   before(hookContext: HookContext) {
-    // Start a span before the flag evaluation
-    const span = trace.getTracer('test-tracer').startSpan(`evaluate-flag:${hookContext.flagKey}`);
-
-    // Store span on the hook context so we can retrieve it later
-    this.spanMap.set(hookContext, span);
+    const activeContext = context.active();
+    console.log("Setting context for before hook:", activeContext);
+    this.contextMap.set(hookContext, activeContext);
   }
+
   after(hookContext: HookContext, evaluationDetails: EvaluationDetails<FlagValue>) {
-    console.log('Running hook')
-    const span = this.spanMap.get(hookContext);
-    console.log('Span', span)
+    const currContext = this.contextMap.get(hookContext);
+    console.log('Running after hook');
 
-
-    if (span) {
-      console.log('Value', evaluationDetails.value)
-      let variant = evaluationDetails.variant;
-      console.log('Variant', variant)
-      if (!variant) {
-        if (typeof evaluationDetails.value === 'string') {
-          variant = evaluationDetails.value;
-        } else {
-          variant = JSON.stringify(evaluationDetails.value);
-        }
-      }
-
-      span.addEvent(FEATURE_FLAG, {
-        [KEY_ATTR]: hookContext.flagKey,
-        [PROVIDER_NAME_ATTR]: hookContext.providerMetadata.name,
-        [VARIANT_ATTR]: variant,
-        ...this.safeAttributeMapper(evaluationDetails.flagMetadata),
-      });
+    if (!currContext) {
+      console.log('No context found, aborting after hook');
+      return;
     }
+
+
+    context.with(currContext, () => {
+      const parent = trace.getSpan(context.active());
+      if (!parent) return;
+
+      parent.addEvent('feature_flag.evaluated', {
+        flagKey: hookContext.flagKey,
+        value: String(evaluationDetails.value),
+        variant: (evaluationDetails as any).variant ?? undefined,
+      });
+
+      parent.setAttribute(`feature_flag.${hookContext.flagKey}.value`, String(evaluationDetails.value));
+      if ((evaluationDetails as any).variant) {
+        parent.setAttribute(`feature_flag.${hookContext.flagKey}.variant`, String((evaluationDetails as any).variant));
+      }
+    });
   }
 
   error(_: HookContext, err: Error) {

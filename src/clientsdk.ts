@@ -2,8 +2,7 @@ import FrontendTracer from "./client-telemetry";
 import { ClientFeatureProvider } from "./client-provider";
 import { OpenFeature } from "@openfeature/web-sdk";
 // import { TracingHook } from "@openfeature/open-telemetry-hooks";
-import { TracingHook } from './client-hook'
-
+import { TracingHook } from './client-hook';
 // // set up provider TODO: move within LFCSDK scope? 
 const clientFeatureFlagProvider = new ClientFeatureProvider();
 

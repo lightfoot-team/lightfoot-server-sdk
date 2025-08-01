@@ -12,7 +12,8 @@ import {
 } from '@openfeature/web-sdk';
 
 import axios from 'axios';
-
+import evaluatedFlags from './evaluated-cache';
+import { trace, context } from '@opentelemetry/api';
 type DefaultValue = string | boolean | JsonValue | number
 const axiosConfig = {
   headers: {
@@ -21,7 +22,7 @@ const axiosConfig = {
 };
 
 
-const cache = new Map();
+const config = new Map();
 
 /** 
  * Retrieves the evaluation results for the current context to enable 
@@ -30,32 +31,34 @@ const cache = new Map();
  */
 const getFlagEvaluationConfig = async (evaluationContext: EvaluationContext) => {
   //TODO: For now, fetch evaluation for all flags for the given context 
-  const response = await axios.post('http://localhost:3001/api/evaluate/config', {context: evaluationContext}, axiosConfig);
+  const response = await axios.post('http://localhost:3001/api/evaluate/config', { context: evaluationContext }, axiosConfig);
   // Set the flag evaluation result for each flag
   response.data.forEach((result: Record<string, any>) => {
-    cache.set(result.flagKey, result.evaluationResult);
+    console.log('result:', result)
+    config.set(result.flagKey, result.evaluationResult);
   });
-  
+
 }
-// curl -X POST http://localhost:3001/api/evaluate/config \
-//   -H "Content-Type: application/json" \
-//   -d '{
-//     "context": {
-//       "name": "admin",
-//       "username": "admin"
-//     }
-//   }'
-const getFlagEvaluation = (flagKey: string, defaultValue: DefaultValue, context: EvaluationContext) => {
-    if (!cache.has(flagKey)) {
-      return { // Default if flag is not in cache? 
-        value: defaultValue,
-        reason: 'STATIC'
-      }
-    } else {
-      return cache.get(flagKey)
+
+const getFlagEvaluation = (flagKey: string, defaultValue: DefaultValue, evaluationContext: EvaluationContext) => {
+  let evaluation;
+  if (!config.has(flagKey)) {
+    console.log('not in config')
+    evaluation = { // Default if flag is not in cache? 
+      value: defaultValue,
+      reason: 'STATIC'
     }
-  
+  } else {
+    evaluation = config.get(flagKey);
+  }
+  evaluatedFlags.set(flagKey, evaluation);
+  console.log('Setting evaluated flags', evaluatedFlags)
+
+  return evaluation;
+
 }
+
+
 
 //TODO: look up naming conventions for provider implementations
 export class ClientFeatureProvider implements Provider {
@@ -77,7 +80,7 @@ export class ClientFeatureProvider implements Provider {
     logger: Logger
   ): ResolutionDetails<boolean> {
 
-    const resolutionDetails =  getFlagEvaluation(flagKey, defaultValue, context);
+    const resolutionDetails = getFlagEvaluation(flagKey, defaultValue, context);
     return resolutionDetails;
   }
 
@@ -87,7 +90,7 @@ export class ClientFeatureProvider implements Provider {
     context: EvaluationContext,
     logger: Logger
   ): ResolutionDetails<string> {
-    const resolutionDetails =  getFlagEvaluation(flagKey, defaultValue, context);
+    const resolutionDetails = getFlagEvaluation(flagKey, defaultValue, context);
     return resolutionDetails;
   }
 
@@ -97,7 +100,7 @@ export class ClientFeatureProvider implements Provider {
     context: EvaluationContext,
     logger: Logger
   ): ResolutionDetails<number> {
-    const resolutionDetails =  getFlagEvaluation(flagKey, defaultValue, context);
+    const resolutionDetails = getFlagEvaluation(flagKey, defaultValue, context);
     return resolutionDetails;
   }
 
@@ -107,7 +110,7 @@ export class ClientFeatureProvider implements Provider {
     context: EvaluationContext,
     logger: Logger
   ): ResolutionDetails<T> {
-    const resolutionDetails =  getFlagEvaluation(flagKey, defaultValue, context);
+    const resolutionDetails = getFlagEvaluation(flagKey, defaultValue, context);
     return resolutionDetails;
   }
 
@@ -117,14 +120,14 @@ export class ClientFeatureProvider implements Provider {
     await getFlagEvaluationConfig
   }
 
-  
-    // implement with "new OpenFeatureEventEmitter()", and use "emit()" to emit events
-//events: ProviderEventEmitter<AnyProviderEvent> = new OpenFeatureEventEmitter() as unknown as ProviderEventEmitter<AnyProviderEvent>;
+
+  // implement with "new OpenFeatureEventEmitter()", and use "emit()" to emit events
+  //events: ProviderEventEmitter<AnyProviderEvent> = new OpenFeatureEventEmitter() as unknown as ProviderEventEmitter<AnyProviderEvent>;
 
   // events = ProviderEventEmitter<AnyProviderEvent> = new OpenFeatureEventEmitter();
 
 
-  async initialize(context?: EvaluationContext | undefined){
+  async initialize(context?: EvaluationContext | undefined) {
     // code to initialize your provider
     await getFlagEvaluationConfig
   }
