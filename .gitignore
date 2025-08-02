@@ -2,3 +2,4 @@ node_modules/
 dist/
 collector/tempo-data/
 .env
+collector
