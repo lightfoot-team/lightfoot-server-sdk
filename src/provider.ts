@@ -23,7 +23,9 @@ const getFlagEvaluationConfig = async (evaluationContext: EvaluationContext) => 
 
     let configCache = new Map();
     configCache.set(result[0], result[1]);
-    flagEvaluationCache.set(evaluationContext, configCache)
+    let cacheWithTTL = {configCache: configCache, ttl: Date.now() + 1000}
+    console.log(cacheWithTTL);
+    flagEvaluationCache.set(evaluationContext, cacheWithTTL);
   });
 }
 
@@ -32,19 +34,24 @@ const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, co
     context,
     flagKey
   }
+  console.log("flag eval cache:", flagEvaluationCache);
   try {
     console.log("Made it to getFlagEvaluation try block");
-    if (flagEvaluationCache.has(context)) {
-      let flagValues = flagEvaluationCache.get(context);
-      let value = flagValues.get(flagKey);
-      let evaluation = { 
-        value: value,
-        reason: 'CACHED'
+    if (flagEvaluationCache.has(context)) {   // has an entry for context, we assume it has flags we're looking for
+      let {flagValues, ttl} = flagEvaluationCache.get(context);
+      if (Date.now() > ttl) {               // if ttl expired, delete context
+        flagEvaluationCache.delete(context);
+        console.log("Cache invalidated!!!!!!!!");
+      } else {
+        let value = flagValues.get(flagKey);  // if ttl not expired, return evaluation of flag value
+        let evaluation = { 
+          value: value,
+          reason: 'CACHED'
+        }
+        return evaluation;  
       }
-
-      return evaluation;  
     }
-    
+    // if flag evaluation cache doesn't have context/flags or if we've deleted context
     const response = await axios.post(`${config.apiBaseUrl}/api/evaluate`, flagDetails, axiosConfig);
     if (response === null) {
       return {
@@ -55,7 +62,9 @@ const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, co
       const result = response.data;
       let configCache = new Map();
       configCache.set(flagKey, result.value);
-      flagEvaluationCache.set(context, configCache);
+      let cacheWithTTL = {configCache: configCache, ttl: Date.now() + 1000};
+      flagEvaluationCache.set(context, cacheWithTTL);
+      console.log(cacheWithTTL);
       return result;
   } catch (err) {
     console.error(err)
