@@ -8,84 +8,113 @@ import {
 import axios from 'axios';
 import config from './config/config';
 
-type DefaultValue = string | boolean | JsonValue | number
+type DefaultValue = string | boolean | JsonValue | number;
+interface EvaluationResult { value: DefaultValue; variant: string; reason: string };
+type EvaluationResultEntry = Array<string | EvaluationResult>
+
 const axiosConfig = {
   headers: {
     'Content-Type': 'application/json',
   }
 };
 
-const flagEvaluationCache = new WeakMap();
+/** Cache of flag evaluations for each evaluation context */
+const flagEvaluationCache = new Map();
 
+/** The maximum time to live for a cached set of evalutions */
+const TTL = 1000 * 30;
+
+/**
+ * Adds evaluation results for a group of flags to the cache for the given context
+ * @param evaluations array of evaluation results to add to the cache
+ * @param serializedContext the serialized context to be used as the key in the cache
+ */
+const addFlagEvaluationsToCache = (evaluations: Array<EvaluationResultEntry>, serializedContext: string) => {
+  const flagEvaluations = new Map();
+  evaluations.forEach(evaluation => {
+    const flagKey = evaluation[0];
+    const evaluationResult = evaluation[1]
+    flagEvaluations.set(flagKey, evaluationResult);
+  })
+  const evaluationsWithTTL = { evaluations: flagEvaluations, ttl: Date.now() + TTL };
+  flagEvaluationCache.set(serializedContext, evaluationsWithTTL);
+}
+
+/**
+ * Fetches evaluations for all flags within a given context and adds them to a cache
+ * for future retrieval 
+ * @param evaluationContext the context for which to fetch evaluations 
+ */
 const getFlagEvaluationConfig = async (evaluationContext: EvaluationContext) => {
   const response = await axios.post(`${config.apiBaseUrl}/api/evaluate/config`, { context: evaluationContext }, axiosConfig);
-  Object.entries(response.data).forEach((result: Record<string, any>) => {
-
-    let configCache = new Map();
-    configCache.set(result[0], result[1]);
-    let cacheWithTTL = {configCache: configCache, ttl: Date.now() + 1000}
-    console.log(cacheWithTTL);
-    flagEvaluationCache.set(evaluationContext, cacheWithTTL);
-  });
+  const serializedContext = JSON.stringify(evaluationContext);
+  addFlagEvaluationsToCache(Object.entries(response.data), serializedContext);
 }
 
-const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, context: EvaluationContext)=> {
-  const flagDetails = {
-    context,
-    flagKey
-  }
-  console.log("flag eval cache:", flagEvaluationCache);
+/**
+ * Evaluates whether a cached item has expired and should be invalidated
+ * @param ttl the ttl timestamp at which the cache should be invalidated
+ * @returns true if the cached item has expired, else false
+ */
+const isExpired = (ttl: number) => {
+  const result = Date.now() > ttl;
+  return result;
+}
+
+/**
+ * Evaluates a flag for a given evaluation context.
+ * Retrieves the evalution from the cached evaluation if present, fetching a fresh evaluation 
+ * from the API if the context is not in the cache or has been invalidated.
+ * @param flagKey the flag to evaluate
+ * @param defaultValue the fallback value if the flag cannot be evaluated
+ * @param context the context to use for evaluating the flag
+ * @returns an `EvaluationResult` object containing the result of the evaluation
+ */
+const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, context: EvaluationContext) => {
+  const serializedContext = JSON.stringify(context)
   try {
-    console.log("Made it to getFlagEvaluation try block");
-    if (flagEvaluationCache.has(context)) {   // has an entry for context, we assume it has flags we're looking for
-      let {flagValues, ttl} = flagEvaluationCache.get(context);
-      if (Date.now() > ttl) {               // if ttl expired, delete context
-        flagEvaluationCache.delete(context);
-        console.log("Cache invalidated!!!!!!!!");
-      } else {
-        let value = flagValues.get(flagKey);  // if ttl not expired, return evaluation of flag value
-        let evaluation = { 
+    if (flagEvaluationCache.has(serializedContext)) {
+      const { evaluations, ttl } = flagEvaluationCache.get(serializedContext);
+      if (isExpired(ttl)) {           
+        flagEvaluationCache.delete(serializedContext);
+      }
+      else {
+        let value = evaluations.get(flagKey).value;
+        //TODO: handle case where flag is not present in cache (throw error?)
+        let evaluation = {
           value: value,
-          reason: 'CACHED'
+          reason: 'CACHED' //TODO: make sure this is best practice 
         }
-        return evaluation;  
+        return evaluation;
       }
     }
-    // if flag evaluation cache doesn't have context/flags or if we've deleted context
-    const response = await axios.post(`${config.apiBaseUrl}/api/evaluate`, flagDetails, axiosConfig);
-    if (response === null) {
-      return {
-        value: defaultValue,
-        reason: 'STATIC'
-      }
-    } 
-      const result = response.data;
-      let configCache = new Map();
-      configCache.set(flagKey, result.value);
-      let cacheWithTTL = {configCache: configCache, ttl: Date.now() + 1000};
-      flagEvaluationCache.set(context, cacheWithTTL);
-      console.log(cacheWithTTL);
-      return result;
+    await getFlagEvaluationConfig(context);
+    const evaluations = flagEvaluationCache.get(serializedContext).evaluations;
+    const flagEvaluation = evaluations.get(flagKey);
+    return {
+      value: flagEvaluation.value,
+      reason: flagEvaluation.reason
+    }
   } catch (err) {
     console.error(err)
-      return {
-        value: defaultValue,
-        reason: 'ERROR'
-      }
+    return {
+      value: defaultValue,
+      reason: 'ERROR'
+    }
   }
 }
+
 
 //TODO: look up naming conventions for provider implementations
 export class MyFeatureProvider implements Provider {
   readonly metadata = {
-    name: 'Best Feature Provider',
+    name: 'Lightfoot Server Provider',
   } as const;
- 
+
   readonly runsOn = 'server';
 
   // emitter for provider events
   events = new OpenFeatureEventEmitter();
-
 
   async resolveBooleanEvaluation(
     flagKey: string,

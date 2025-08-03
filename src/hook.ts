@@ -1,6 +1,5 @@
 const { context, trace } = require('@opentelemetry/api');
 
-import axios from 'axios';
 import {
   Hook,
   HookContext,
