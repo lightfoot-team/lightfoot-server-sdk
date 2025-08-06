@@ -2,22 +2,38 @@ import { FlagEnrichmentHook } from "./hook";
 import { MyFeatureProvider } from "./provider";
 import { OpenFeature } from "@openfeature/server-sdk";
 import { MetricsHook, TracingHook } from "@openfeature/open-telemetry-hooks";
-import { metrics, context, trace } from '@opentelemetry/api';
-import { sdk, telemetryMiddleware } from './telemetry';
+import { createSDK } from './telemetry';
+import { SDKConfig, defaultConfig } from "./config/config";
 
-// set up provider
-const featureFlagProvider = new MyFeatureProvider();
-OpenFeature.setProvider(featureFlagProvider);
+class LightFootSDK {
+  private sdk: any;
+  private featureFlagsClient;
+  private config: SDKConfig;
 
-// expose client
-export const featureFlagsClient = OpenFeature.getClient();
-
-// expose async func to start the SDK
-export const lightFoot = {
-  init: () => {
-  sdk.start();
-  featureFlagsClient.addHooks(new MetricsHook());
-  featureFlagsClient.addHooks(new FlagEnrichmentHook());
-  featureFlagsClient.addHooks(new TracingHook());
+  constructor(config: SDKConfig) {
+    this.config = config;
+    this.sdk = createSDK(this.config);
+    
+    // Set up provider
+    const featureFlagProvider = new MyFeatureProvider(this.config);
+    OpenFeature.setProvider(featureFlagProvider);
+    
+    // Create client
+    this.featureFlagsClient = OpenFeature.getClient();
   }
-};
+
+  init() {
+    this.sdk.start();
+    this.featureFlagsClient.addHooks(new MetricsHook());
+    this.featureFlagsClient.addHooks(new FlagEnrichmentHook());
+    this.featureFlagsClient.addHooks(new TracingHook());
+  }
+
+  getClient() {
+    return this.featureFlagsClient;
+  }
+}
+
+export default LightFootSDK;
+export { LightFootSDK };
+export { defaultConfig };

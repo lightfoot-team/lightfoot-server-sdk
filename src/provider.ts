@@ -6,7 +6,7 @@ import {
   OpenFeatureEventEmitter,
 } from '@openfeature/server-sdk';
 import axios from 'axios';
-import config from './config/config';
+import { SDKConfig } from './config/config';
 
 type DefaultValue = string | boolean | JsonValue | number;
 interface EvaluationResult { value: DefaultValue; variant: string; reason: string };
@@ -44,8 +44,9 @@ const addFlagEvaluationsToCache = (evaluations: Array<EvaluationResultEntry>, se
  * Fetches evaluations for all flags within a given context and adds them to a cache
  * for future retrieval 
  * @param evaluationContext the context for which to fetch evaluations 
+ * @param config the SDK configuration containing API URLs
  */
-const getFlagEvaluationConfig = async (evaluationContext: EvaluationContext) => {
+const getFlagEvaluationConfig = async (evaluationContext: EvaluationContext, config: SDKConfig) => {
   const response = await axios.post(`${config.apiBaseUrl}/api/evaluate/config`, { context: evaluationContext }, axiosConfig);
   const serializedContext = JSON.stringify(evaluationContext);
   addFlagEvaluationsToCache(Object.entries(response.data), serializedContext);
@@ -68,9 +69,10 @@ const isExpired = (ttl: number) => {
  * @param flagKey the flag to evaluate
  * @param defaultValue the fallback value if the flag cannot be evaluated
  * @param context the context to use for evaluating the flag
+ * @param config the SDK configuration containing API URLs
  * @returns an `EvaluationResult` object containing the result of the evaluation
  */
-const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, context: EvaluationContext) => {
+const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, context: EvaluationContext, config: SDKConfig) => {
   const serializedContext = JSON.stringify(context)
   try {
     if (flagEvaluationCache.has(serializedContext)) {
@@ -88,7 +90,7 @@ const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, co
         return evaluation;
       }
     }
-    await getFlagEvaluationConfig(context);
+    await getFlagEvaluationConfig(context, config);
     const evaluations = flagEvaluationCache.get(serializedContext).evaluations;
     const flagEvaluation = evaluations.get(flagKey);
     return {
@@ -104,7 +106,6 @@ const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, co
   }
 }
 
-
 //TODO: look up naming conventions for provider implementations
 export class MyFeatureProvider implements Provider {
   readonly metadata = {
@@ -116,13 +117,15 @@ export class MyFeatureProvider implements Provider {
   // emitter for provider events
   events = new OpenFeatureEventEmitter();
 
+  constructor(private config: SDKConfig) {}
+
   async resolveBooleanEvaluation(
     flagKey: string,
     defaultValue: boolean,
     context: EvaluationContext,
   ): Promise<ResolutionDetails<boolean>> {
 
-    const resolutionDetails = await getFlagEvaluation(flagKey, defaultValue, context);
+    const resolutionDetails = await getFlagEvaluation(flagKey, defaultValue, context, this.config);
     console.log('details', resolutionDetails)
     return resolutionDetails;
   }
@@ -132,7 +135,7 @@ export class MyFeatureProvider implements Provider {
     defaultValue: string,
     context: EvaluationContext,
   ): Promise<ResolutionDetails<string>> {
-    const resolutionDetails = await getFlagEvaluation(flagKey, defaultValue, context);
+    const resolutionDetails = await getFlagEvaluation(flagKey, defaultValue, context, this.config);
     return resolutionDetails;
   }
 
@@ -141,7 +144,7 @@ export class MyFeatureProvider implements Provider {
     defaultValue: number,
     context: EvaluationContext,
   ): Promise<ResolutionDetails<number>> {
-    const resolutionDetails = await getFlagEvaluation(flagKey, defaultValue, context);
+    const resolutionDetails = await getFlagEvaluation(flagKey, defaultValue, context, this.config);
     return resolutionDetails;
   }
 
@@ -150,7 +153,7 @@ export class MyFeatureProvider implements Provider {
     defaultValue: T,
     context: EvaluationContext,
   ): Promise<ResolutionDetails<T>> {
-    const resolutionDetails = await getFlagEvaluation(flagKey, defaultValue, context);
+    const resolutionDetails = await getFlagEvaluation(flagKey, defaultValue, context, this.config);
     return resolutionDetails;
   }
 }
