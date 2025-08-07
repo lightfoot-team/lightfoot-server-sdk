@@ -4,7 +4,7 @@ import {
   Hook,
   HookContext,
   EvaluationDetails,
-} from '@openfeature/js-sdk';
+} from '@openfeature/server-sdk';
 const axiosConfig = {
   headers: {
     'Content-Type': 'application/json',
