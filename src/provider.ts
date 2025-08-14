@@ -22,7 +22,7 @@ const axiosConfig = {
 const flagEvaluationCache = new Map();
 
 /** The maximum time to live for a cached set of evalutions */
-const TTL = 1000 * 30;
+const TTL = 180000;
 
 /**
  * Adds evaluation results for a group of flags to the cache for the given context
