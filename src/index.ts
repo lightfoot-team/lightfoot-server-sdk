@@ -1,7 +1,7 @@
 import { FlagEnrichmentHook } from "./hook";
 import { MyFeatureProvider } from "./provider";
 import { OpenFeature } from "@openfeature/server-sdk";
-import { MetricsHook, TracingHook } from "@openfeature/open-telemetry-hooks";
+import { MetricsHook } from "@openfeature/open-telemetry-hooks";
 import { createSDK } from './telemetry';
 import { SDKConfig, defaultConfig } from "./config/config";
 
@@ -26,7 +26,7 @@ class LightFootSDK {
     this.sdk.start();
     this.featureFlagsClient.addHooks(new MetricsHook());
     this.featureFlagsClient.addHooks(new FlagEnrichmentHook());
-    this.featureFlagsClient.addHooks(new TracingHook());
+    // this.featureFlagsClient.addHooks(new TracingHook());
   }
 
   getClient() {

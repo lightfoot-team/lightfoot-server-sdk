@@ -81,11 +81,12 @@ const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, co
         flagEvaluationCache.delete(serializedContext);
       }
       else {
-        let value = evaluations.get(flagKey).value;
+        let {value, variant} = evaluations.get(flagKey);
         //TODO: handle case where flag is not present in cache (throw error?)
         let evaluation = {
           value: value,
-          reason: 'CACHED' //TODO: make sure this is best practice 
+          reason: 'CACHED', //TODO: make sure this is best practice 
+          variant: variant,
         }
         return evaluation;
       }
@@ -95,12 +96,14 @@ const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, co
     const flagEvaluation = evaluations.get(flagKey);
     return {
       value: flagEvaluation.value,
+      variant: flagEvaluation.variant,
       reason: flagEvaluation.reason
     }
   } catch (err) {
     console.error(err)
     return {
       value: defaultValue,
+      variant: undefined,
       reason: 'ERROR'
     }
   }

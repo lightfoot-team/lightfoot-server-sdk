@@ -5,6 +5,7 @@ import {
   HookContext,
   EvaluationDetails,
 } from '@openfeature/server-sdk';
+import { FEATURE_FLAG, KEY_ATTR, PROVIDER_NAME_ATTR, VALUE_ATTR, VARIANT_ATTR } from './conventions';
 const axiosConfig = {
   headers: {
     'Content-Type': 'application/json',
@@ -16,19 +17,19 @@ export class FlagEnrichmentHook implements Hook {
   async after(hookContext: HookContext, evaluationDetails: EvaluationDetails<any>) {
     const activeContext = context.active();
     const span = trace.getSpan(activeContext);
-    const spanContext = span.spanContext();
-    const spanData = {
-      traceId: spanContext.traceId,
-      spanId: spanContext.spanId,
-      traceFlags: spanContext.traceFlags,
-      name: span.name,
-      startTime: span.startTime,
-      endTime: span.endTime,
-      attributes: span.attributes,
-      status: span.status,
-      events: span.events,
-      evaluationDetails
-    };
+    let { flagKey, value, variant } = evaluationDetails;
+
+    if (typeof value === 'object') {
+      value = JSON.stringify(value);
+    }
+    if (!variant) {
+      variant = value;
+    }
+    span.addEvent(`${FEATURE_FLAG}.evaluated`, {
+      [KEY_ATTR]: flagKey,
+      [VALUE_ATTR]: value,
+      [VARIANT_ATTR]: variant,
+    })
   }
 
   error(hookContext: HookContext, err: Error) {
