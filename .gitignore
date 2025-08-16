@@ -3,3 +3,4 @@ dist/
 collector/tempo-data/
 .env
 collector
+.DS_Store
