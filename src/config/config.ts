@@ -7,3 +7,9 @@ export const defaultConfig: SDKConfig = {
   apiBaseUrl: "http://localhost:3001",
   metricsTracesBaseUrl: "http://localhost:4318",
 };
+
+export const axiosConfig = {
+  headers: {
+    'Content-Type': 'application/json',
+  }
+};

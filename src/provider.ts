@@ -4,39 +4,47 @@ import {
   EvaluationContext,
   JsonValue,
   OpenFeatureEventEmitter,
+  ErrorCode,
 } from '@openfeature/server-sdk';
 import axios from 'axios';
-import { SDKConfig } from './config/config';
+import { SDKConfig, axiosConfig } from './config/config';
+import { Reason } from './conventions';
+import { Flag, FlagValue, DefaultValue, EvaluationResultEntry } from './types';
 
-type DefaultValue = string | boolean | JsonValue | number;
-interface EvaluationResult { value: DefaultValue; variant: string; reason: string };
-type EvaluationResultEntry = Array<string | EvaluationResult>
 
-const axiosConfig = {
-  headers: {
-    'Content-Type': 'application/json',
-  }
-};
 
 /** Cache of flag evaluations for each evaluation context */
 const flagEvaluationCache = new Map();
 
 /** The maximum time to live for a cached set of evalutions */
 const TTL = 180000;
-
+/**
+ * Finds the corresponding variant name for a flag that was evaluated with
+ * a fallback value 
+ * @param flag the flag being evaluated
+ * @param value the value for which to lookup the variant name
+ * @returns the name of the variant matching the provided value, or undefined if no match is found 
+ */
+const resolveVariantFromValue = (flag: Flag, value: FlagValue) => {
+  let matchingVariant;
+  matchingVariant = Object.keys(flag.variants).find(variant => {
+    return flag.variants[variant] === value;
+  })
+  return matchingVariant;
+}
 /**
  * Adds evaluation results for a group of flags to the cache for the given context
  * @param evaluations array of evaluation results to add to the cache
  * @param serializedContext the serialized context to be used as the key in the cache
  */
 const addFlagEvaluationsToCache = (evaluations: Array<EvaluationResultEntry>, serializedContext: string) => {
-  const flagEvaluations = new Map();
+  const currentContextEvaluations = new Map();
   evaluations.forEach(evaluation => {
     const flagKey = evaluation[0];
     const evaluationResult = evaluation[1]
-    flagEvaluations.set(flagKey, evaluationResult);
+    currentContextEvaluations.set(flagKey, evaluationResult);
   })
-  const evaluationsWithTTL = { evaluations: flagEvaluations, ttl: Date.now() + TTL };
+  const evaluationsWithTTL = { evaluations: currentContextEvaluations, ttl: Date.now() + TTL };
   flagEvaluationCache.set(serializedContext, evaluationsWithTTL);
 }
 
@@ -73,22 +81,30 @@ const isExpired = (ttl: number) => {
  * @returns an `EvaluationResult` object containing the result of the evaluation
  */
 const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, context: EvaluationContext, config: SDKConfig) => {
-  const serializedContext = JSON.stringify(context)
+  const serializedContext = JSON.stringify(context);
   try {
     if (flagEvaluationCache.has(serializedContext)) {
       const { evaluations, ttl } = flagEvaluationCache.get(serializedContext);
-      if (isExpired(ttl)) {           
+      if (isExpired(ttl)) {
         flagEvaluationCache.delete(serializedContext);
       }
       else {
-        let {value, variant} = evaluations.get(flagKey);
-        //TODO: handle case where flag is not present in cache (throw error?)
-        let evaluation = {
-          value: value,
-          reason: 'CACHED', //TODO: make sure this is best practice 
-          variant: variant,
+        let flagEvaluation = evaluations.get(flagKey);
+        if (flagEvaluation) {
+          //TODO: handle case where flag is not present in cache (throw error?)
+          return {
+            value: flagEvaluation.value,
+            reason: Reason.CACHED,
+            variant: flagEvaluation.variant,
+          }
         }
-        return evaluation;
+        return {
+          value: defaultValue,
+          variant: undefined,
+          reason: Reason.ERROR,
+          // errorCode: ErrorCode.FLAG_NOT_FOUND
+        }
+
       }
     }
     await getFlagEvaluationConfig(context, config);
@@ -101,18 +117,20 @@ const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, co
     }
   } catch (err) {
     console.error(err)
+
     return {
       value: defaultValue,
       variant: undefined,
-      reason: 'ERROR'
+      reason: Reason.ERROR,
+      // errorCode: ErrorCode.GENERAL,
     }
   }
 }
 
 //TODO: look up naming conventions for provider implementations
-export class MyFeatureProvider implements Provider {
+export class LightFootServerProvider implements Provider {
   readonly metadata = {
-    name: 'Lightfoot Server Provider',
+    name: 'LightFoot Server Provider',
   } as const;
 
   readonly runsOn = 'server';
@@ -120,7 +138,7 @@ export class MyFeatureProvider implements Provider {
   // emitter for provider events
   events = new OpenFeatureEventEmitter();
 
-  constructor(private config: SDKConfig) {}
+  constructor(private config: SDKConfig) { }
 
   async resolveBooleanEvaluation(
     flagKey: string,
