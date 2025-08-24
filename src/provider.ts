@@ -91,7 +91,6 @@ const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, co
       else {
         let flagEvaluation = evaluations.get(flagKey);
         if (flagEvaluation) {
-          //TODO: handle case where flag is not present in cache (throw error?)
           return {
             value: flagEvaluation.value,
             reason: Reason.CACHED,
@@ -102,7 +101,6 @@ const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, co
           value: defaultValue,
           variant: undefined,
           reason: Reason.ERROR,
-          // errorCode: ErrorCode.FLAG_NOT_FOUND
         }
 
       }
@@ -122,12 +120,10 @@ const getFlagEvaluation = async (flagKey: string, defaultValue: DefaultValue, co
       value: defaultValue,
       variant: undefined,
       reason: Reason.ERROR,
-      // errorCode: ErrorCode.GENERAL,
     }
   }
 }
 
-//TODO: look up naming conventions for provider implementations
 export class LightFootServerProvider implements Provider {
   readonly metadata = {
     name: 'LightFoot Server Provider',
@@ -135,7 +131,6 @@ export class LightFootServerProvider implements Provider {
 
   readonly runsOn = 'server';
 
-  // emitter for provider events
   events = new OpenFeatureEventEmitter();
 
   constructor(private config: SDKConfig) { }

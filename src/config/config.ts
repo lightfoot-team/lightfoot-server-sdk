@@ -1,11 +1,11 @@
 export interface SDKConfig {
-  apiBaseUrl: string;
-  metricsTracesBaseUrl: string;
+  flagEvaluationURL: string;
+  OTLPExporterBaseURL: string;
 }
 
 export const defaultConfig: SDKConfig = {
-  apiBaseUrl: "http://localhost:3001",
-  metricsTracesBaseUrl: "http://localhost:4318",
+  flagEvaluationURL: "http://localhost:3001",
+  OTLPExporterBaseURL: "http://localhost:4318",
 };
 
 export const axiosConfig = {

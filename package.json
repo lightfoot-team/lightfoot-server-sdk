@@ -1,9 +1,21 @@
 {
-  "name": "sdk",
-  "version": "0.1.0",
+  "name": "lightfoot-server-sdk",
+  "version": "1.0.0",
+  "description": "Server SDK for Lightfoot, a feature flag management system with built-in observability using OpenFeature and OpenTelemetry integrations",
   "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.d.ts",
+  "module": "./dist/esm/index.js",
   "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/esm/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "npm run build:cjs && npm run build:esm",
     "build:cjs": "tsc -p tsconfig.cjs.json",
@@ -13,16 +25,31 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/team-alpascal/sdk.git"
+    "url": "git+https://github.com/lightfoot-team/lightfoot-server-sdk.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "lightfoot",
+    "server",
+    "sdk",
+    "openfeature",
+    "opentelemetry",
+    "telemetry",
+    "monitoring",
+    "feature-flags",
+    "observability"
+  ],
+  "author": "Alex Johnson, Allister Driscoll, Patrick Moran, Scott Venkataraman",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/team-alpascal/sdk/issues"
+    "url": "https://github.com/lightfoot-team/lightfoot-server-sdk/issues"
   },
-  "homepage": "https://github.com/team-alpascal/sdk#readme",
-  "description": "",
+  "homepage": "https://github.com/lightfoot-team/lightfoot-server-sdk#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@types/express": "^5.0.3",
     "typescript": "^5.8.3"
