@@ -39,7 +39,7 @@ const lightFoot = new LightFootSDK({
 });
 ```
 
-## Production Configuration
+## Deployment Configuration
 ```javascript
 const lightFoot = new LightFootSDK({
   flagEvaluationURL: "https://api.your-lightfoot-instance.com",
