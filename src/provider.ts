@@ -55,7 +55,7 @@ const addFlagEvaluationsToCache = (evaluations: Array<EvaluationResultEntry>, se
  * @param config the SDK configuration containing API URLs
  */
 const getFlagEvaluationConfig = async (evaluationContext: EvaluationContext, config: SDKConfig) => {
-  const response = await axios.post(`${config.apiBaseUrl}/api/evaluate/config`, { context: evaluationContext }, axiosConfig);
+  const response = await axios.post(`${config.flagEvaluationURL}/api/evaluate/config`, { context: evaluationContext }, axiosConfig);
   const serializedContext = JSON.stringify(evaluationContext);
   addFlagEvaluationsToCache(Object.entries(response.data), serializedContext);
 }

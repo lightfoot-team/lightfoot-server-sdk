@@ -8,14 +8,14 @@ import { SDKConfig } from './config/config';
 
 export const createSDK = (config: SDKConfig) => {
   const metricReader = new PeriodicExportingMetricReader({
-    exporter: new OTLPMetricExporter({url: `${config.metricsTracesBaseUrl}/v1/metrics`}),
+    exporter: new OTLPMetricExporter({url: `${config.OTLPExporterBaseURL}/v1/metrics`}),
     exportIntervalMillis: 5000,
   });
 
   return new NodeSDK({
     contextManager: new AsyncHooksContextManager().enable(),
     traceExporter: new OTLPTraceExporter({
-      url: `${config.metricsTracesBaseUrl}/v1/traces`,
+      url: `${config.OTLPExporterBaseURL}/v1/traces`,
     }),
     metricReader: metricReader,
     instrumentations: [getNodeAutoInstrumentations()],
